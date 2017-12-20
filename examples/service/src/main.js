@@ -1,4 +1,4 @@
-import {subscriptionManager} from "../../../src/client/main";
+import {subscriptionManager} from "../../../src/client/index";
 
 
 const pushButton = document.querySelector('.js-push-btn');
@@ -33,7 +33,7 @@ function updateSubscriptionText(subscription) {
 }
 
 
-function initialiseUI({unsubscribeUser, subscribeUser, checkSubscription}) {
+function initialiseUI({checkSubscription, updateSubscription}) {
     checkSubscription()
         .then(subscription => {
             console.log(subscription);
@@ -45,10 +45,7 @@ function initialiseUI({unsubscribeUser, subscribeUser, checkSubscription}) {
         });
 
     pushButton.addEventListener('click', () =>
-        checkSubscription()
-            .then(() => unsubscribeUser())
-            .catch(() => subscribeUser())
-            .then(subscription => updateSubscriptionText(subscription)));
+        updateSubscription().then(subscription => updateSubscriptionText(subscription)));
 
 }
 
@@ -58,7 +55,7 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
     navigator.serviceWorker.register('sw.js')
         .then(function(swReg) {
             console.log('Service Worker is registered', swReg);
-            initialiseUI(subscriptionManager(swReg, uid));
+            initialiseUI(subscriptionManager(swReg, {uid}));
         })
         .catch(function(error) {
             console.error('Service Worker Error', error);

@@ -1,4 +1,4 @@
-import {sendMessage, waitUntilInstalled} from "./utils";
+import {sendMessage, waitUntilInstalled} from "../../../src/client/utils";
 
 const pushButton = document.querySelector('.js-push-btn');
 
@@ -36,7 +36,7 @@ async function initialiseUI(controller) {
 const updateUI = (subscription) => updateSubscriptionText(subscription)
     .then((subscription) => updateBtn(subscription && subscription.subscribed));
 
-const checkSubscription = (controller) => sendMessage(controller, {type: 'checkSubscription'})
+const checkSubscription = (controller) => sendMessage(controller, {type: 'testSubscription'})
     .then(subscription => updateUI(subscription));
 
 const updateSubscription = (controller) => sendMessage(controller, {type: 'updateSubscription'})

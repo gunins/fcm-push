@@ -1,9 +1,14 @@
-import {subscriptionManager} from "../../../src/client/main";
+import {subscriptionManager} from "../../../src/client/index";
+
+const {clients, registration} = self;
 
 const uid = 'guntars';
-const {unsubscribeUser, subscribeUser, checkSubscription} = subscriptionManager(self.registration, uid);
-const {clients} = self;
+const rootURI = `/api/v1`
 
+const {testSubscription, updateSubscription} = subscriptionManager(registration, {rootURI, uid});
+
+const messageTypes = {testSubscription, updateSubscription};
+const getMessageType = type => messageTypes[type] ? messageTypes[type]() : Promise.resolve();
 
 self.addEventListener('install', (event) => {
     console.log('install');
@@ -15,45 +20,24 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-self.addEventListener('message', (event) => {
-    const {data, ports} = event;
+
+self.addEventListener('message', ({data, ports}) => {
     const {type} = data;
-    const [port1] = ports;
-    if (type === 'updateSubscription') {
-        checkSubscription()
-            .then(() => unsubscribeUser())
-            .catch(() => subscribeUser())
-            .then((subscription) => port1.postMessage(subscription));
-
-    } else if (type === 'checkSubscription') {
-        checkSubscription()
-            .then(subscription => subscription)
-            .catch(error => error)
-            .then((message) => port1.postMessage(message));
-
-    }
-
+    const [port] = ports;
+    getMessageType(type)
+        .then(message => port.postMessage(message));
 });
 
 self.addEventListener('push', (event) => {
     console.log('[Service Worker] Push Received.');
     console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
+    const title = 'FCM Push messaging';
 
-    console.log(event.data.json(), 'data');
-    const title = 'Push Codelab';
-    const options = {
-        body:  event.data.text(),
-        icon:  'images/icon.png',
-        badge: 'images/badge.png'
-    };
-
-    event.waitUntil(self.registration
+    event.waitUntil(registration
         .getNotifications()
-        .then(notifications => {
-            notifications.map(existingNotification => {
-                console.log(existingNotification.data);
-                return existingNotification.close();
-            });
-            return self.registration.showNotification(title, event.data.json());
-        }));
+        .then(notifications => notifications.map(existingNotification => {
+            console.log(existingNotification.data);
+            return existingNotification.close();
+        }))
+        .then(() => self.registration.showNotification(title, event.data.json())));
 });

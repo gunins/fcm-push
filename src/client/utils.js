@@ -16,11 +16,11 @@ const waitUntilInstalled = (registration) => new Promise((resolve, reject) => {
 
 const sendMessage = (client, message) => new Promise((resolve, reject) => {
     const {port1, port2} = new MessageChannel();
-    port1.onmessage = event => {
-        if (event.data.error) {
-            reject(event.data.error);
+    port1.onmessage = ({data}={}) => {
+        if (data.error) {
+            reject(data.error);
         } else {
-            resolve(event.data);
+            resolve(data);
         }
     };
     client.postMessage(message, [port2]);

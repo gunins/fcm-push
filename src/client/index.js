@@ -1,7 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const {assign} = Object;
 const request = (uri, method = 'get', body) => fetch(uri, {
     headers:     {
@@ -34,16 +30,34 @@ const urlB64ToUnit8Array = (base64String) => {
     return new Uint8Array(rawData.length).map((_, i) => rawData.charCodeAt(i));
 };
 
+
+const subscribeUser = (pushManager, {uid, rootURI}) => applicationServerPublicKey(rootURI)
+    .then(key => pushManager.subscribe({
+        userVisibleOnly:      true,
+        applicationServerKey: urlB64ToUnit8Array(key)
+    }))
+    .then(subscription => pushSubscription(uid, subscription.toJSON(), rootURI))
+    .then(subscription => assign(subscription, {subscribed: true}));
+
+const unsubscribeUser = (pushManager, {uid, rootURI}) => pushManager.getSubscription()
+    .then(subscription => subscription ? subscription.unsubscribe() : false)
+    .then(() => removeSubscription(uid, rootURI));
+
+const checkSubscription = (pushManager, {uid, rootURI}) => Promise
+    .all([testSubscription(uid, rootURI), pushManager.getSubscription()])
+    .then(([remote, local]) => updateSubscription(pushManager, {uid, rootURI})(remote, local));
+
+
 //Guards
 const remoteLocalGuard = (remote, local) => remote && local;
 const localOnlyGuard = (remote, local) => local && !remote;
 const remoteOnlyGuard = (remote, local) => remote && !local;
 
-const updateSubscription = (sw, {uid, rootURI}) => {
+const updateSubscription = (pushManager, {uid, rootURI}) => {
     //Subscription Update Actions
     const remoteLocal = async (remote, local) => remoteLocalGuard(remote, local) ? local.toJSON() : false;
     const localOnly = async (remote, local) => localOnlyGuard(remote, local) ? pushSubscription(uid, local.toJSON(), rootURI) : false;
-    const remoteOnly = async (remote, local, sw, uid) => remoteOnlyGuard(remote, local) ? subscribeUser(sw, {
+    const remoteOnly = async (remote, local) => remoteOnlyGuard(remote, local) ? subscribeUser(pushManager, {
         uid,
         rootURI
     }) : false;
@@ -54,34 +68,36 @@ const updateSubscription = (sw, {uid, rootURI}) => {
         .then(subscription => subscription ? assign(subscription, {subscribed: true}) : Promise.reject(subscription));
 };
 
-const subscribeUser = (sw, {uid, rootURI}) => applicationServerPublicKey(rootURI)
-    .then(key => sw.pushManager.subscribe({
-        userVisibleOnly:      true,
-        applicationServerKey: urlB64ToUnit8Array(key)
-    }))
-    .then(subscription => pushSubscription(uid, subscription.toJSON(), rootURI))
-    .then(subscription => assign(subscription, {subscribed: true}));
 
-const unsubscribeUser = (sw, {uid, rootURI}) => sw.pushManager.getSubscription()
-    .then(subscription => subscription ? subscription.unsubscribe() : false)
-    .then(() => removeSubscription(uid, rootURI));
+const subscriptionManager = ({pushManager}, options = {}) => {
+    const params = assign({rootURI: `/api/v1`}, options);
 
-const checkSubscription = (sw, {uid, rootURI}) => Promise.all([testSubscription(uid, rootURI), sw.pushManager.getSubscription()])
-    .then(([remote, local]) => updateSubscription(sw, {uid, rootURI})(remote, local));
+    if (!params.uid) {
+        throw ('uid not defined for subscriptionManager');
+    }
 
-
-const subscriptionManager = (sw, uid, options = {rootURI: `/api/v1`}) => {
-    const {rootURI} = options;
     return {
         subscribeUser() {
-            return subscribeUser(sw, {uid, rootURI});
-        }, unsubscribeUser() {
-            return unsubscribeUser(sw, {uid, rootURI});
+            return subscribeUser(pushManager, params);
+        },
+        unsubscribeUser() {
+            return unsubscribeUser(pushManager, params);
 
-        }, checkSubscription() {
-            return checkSubscription(sw, {uid, rootURI});
+        },
+        checkSubscription() {
+            return checkSubscription(pushManager, params);
+        },
+        updateSubscription() {
+            return checkSubscription(pushManager, params)
+                .then(() => unsubscribeUser(pushManager, params))
+                .catch(() => subscribeUser(pushManager, params));
+        },
+        testSubscription() {
+            return checkSubscription(pushManager, params)
+                .then(subscription => subscription)
+                .catch(error => error);
         }
     };
 };
 
-exports.subscriptionManager = subscriptionManager;
+export {subscriptionManager}
