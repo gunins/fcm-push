@@ -36,6 +36,7 @@ function updateSubscriptionText(subscription) {
 function initialiseUI({unsubscribeUser, subscribeUser, checkSubscription}) {
     checkSubscription()
         .then(subscription => {
+            console.log(subscription);
             updateSubscriptionText(subscription);
         })
         .catch(() => {

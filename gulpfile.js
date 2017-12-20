@@ -95,11 +95,14 @@ let sampleRollup = (name, file = 'index', format = 'umd') => {
 let examples = () => {
     sampleRollup('service', 'index','cjs');
     sampleRollup('service', 'main','iife');
+    sampleRollup('lazy', 'index','cjs');
+    sampleRollup('lazy', 'main','iife');
+    sampleRollup('lazy', 'sw','iife');
 };
 gulp.task('sampleRollup', examples);
 
-gulp.task('watch', ['clean', 'rollup'], () => {
-    return watch('./examples/**/*.js', {ignoreInitial: false}, examples);
+gulp.task('watch', ['clean', 'rollup','sampleRollup'], () => {
+    return watch('./examples/**/src/*.js', {ignoreInitial: true}, examples);
 });
 
 

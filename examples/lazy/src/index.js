@@ -6,7 +6,8 @@ import {message, messenger} from './push';
 
 const expressApp = express();
 expressApp.use(bodyParser.json());
-expressApp.use(express.static('./examples/service'));
+expressApp.use(express.static('./examples/lazy'));
+expressApp.use(express.static('./examples/lazy/dist'));
 
 const subscriptions = storage();
 expressApp.use('/api/v1', subscription(subscriptions).run());
@@ -18,6 +19,8 @@ expressApp.get('/api/v1/key', async (req, resp) => {
         key
     })
 });
+
+
 
 expressApp.get('/push/:uid', async (req, resp) => {
     const {uid} = req.params;
