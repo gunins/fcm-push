@@ -19,7 +19,9 @@ const pushSubscription = (uid, subscription, rootURI) => request(`${rootURI}/sub
 const removeSubscription = (uid, rootURI) => request(`${rootURI}/subscription/${uid}`, 'delete');
 
 const testSubscription = (uid, rootURI) => request(`${rootURI}/subscription/${uid}`, 'get').then(({status} = {}) => status === 'Success');
+/*
 
+* */
 const urlB64ToUnit8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -68,7 +70,12 @@ const updateSubscription = (pushManager, {uid, rootURI}) => {
         .then(subscription => subscription ? assign(subscription, {subscribed: true}) : Promise.reject(subscription));
 };
 
-
+/**
+ * Creates set of methods to manage push notifications.
+ * @param {pushManager} pushManager - Service Worker PushManager.
+ * @param {rootURI,uid} options - Params for rootURI and uid (uid is mandatory param)
+ * @return {*} list of methods.
+ */
 const subscriptionManager = ({pushManager}, options = {}) => {
     const params = assign({rootURI: `/api/v1`}, options);
 
@@ -77,21 +84,42 @@ const subscriptionManager = ({pushManager}, options = {}) => {
     }
 
     return {
+        /**
+        * @method Checking, if user have subscription for notifications
+        * @return {Promise}
+
+         * */
+        checkSubscription() {
+            return checkSubscription(pushManager, params);
+        },
+        /**
+         * @method Subscribe user for notifications
+         * @return {Promise}
+         * */
         subscribeUser() {
             return subscribeUser(pushManager, params);
         },
+        /**
+         * @method remove user subscription for notifications
+         * @return {Promise}
+         * */
         unsubscribeUser() {
             return unsubscribeUser(pushManager, params);
 
         },
-        checkSubscription() {
-            return checkSubscription(pushManager, params);
-        },
+        /**
+         * @method toggle user subscription for notifications
+         * @return {Promise}
+         * */
         updateSubscription() {
             return checkSubscription(pushManager, params)
                 .then(() => unsubscribeUser(pushManager, params))
                 .catch(() => subscribeUser(pushManager, params));
         },
+        /**
+         * @method Same like checkSubscripton, but always returning successful Promise
+         * @return {Promise}
+         * */
         testSubscription() {
             return checkSubscription(pushManager, params)
                 .then(subscription => subscription)
