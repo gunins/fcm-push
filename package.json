@@ -1,7 +1,7 @@
 {
-    "name": "fcm-push",
+    "name": "fcm-messages",
     "version": "0.0.1",
-    "description": "Small library to use Firebase cloud messaging without firebase",
+    "description": "Small library to use Firebase cloud messaging without firebase javascript",
     "main": "index.js",
     "scripts": {
         "test": "gulp test"
@@ -15,7 +15,8 @@
         "fcm-messages",
         "google",
         "cloud",
-        "messaging"
+        "messaging",
+        "web-push"
     ],
     "author": "Guntars Simanskis <guntars@diamondgraphics.ie>",
     "license": "ISC",

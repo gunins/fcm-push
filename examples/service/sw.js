@@ -10,7 +10,7 @@ self.addEventListener('push', (event) => {
     console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
 
     console.log(event.data.json(), 'data');
-    const title = 'Push Codelab';
+    const title = 'FCM PUSH';
     const options = {
         body:  event.data.text(),
         icon:  'images/icon.png',

@@ -14,7 +14,7 @@ class WebPush {
     /**
      * Set new Keys for class.
      * @param {String} host  - http:// host or mailto:.
-     * @optional {obj} keys  private and Public keys, if not set, 'web-push' library will generate
+     * @optional {Object} keys  publicKey and privateKey, if not set, 'web-push' library will generate
      */
     generateKeys(host, {publicKey, privateKey} = webpush.generateVAPIDKeys()) {
         webpush.setVapidDetails(host, publicKey, privateKey);
@@ -32,7 +32,7 @@ class WebPush {
      * @param subscription
      *      {
      *          "endpoint":"https://fcm.googleapis.com/fcm/send/...",
-     *          "expirationTime":null,
+     *          "expirationTime":...,
      *          "keys":{
      *              "p256dh":"...",
      *              "auth":"..."
@@ -40,7 +40,8 @@ class WebPush {
      *        }
      *
      * Subscription data you getting from Service Worker `pushManager.subscribe`
-     * @return {obj} Notification status.
+     * @param {String} message - String or Buffer, to send notification.
+     * @return {Promise} Notification status.
      */
     sendNotification(subscription, message) {
         return webpush.sendNotification(subscription, message);

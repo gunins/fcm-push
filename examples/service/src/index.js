@@ -30,4 +30,4 @@ expressApp.get('/push/:uid', async (req, resp) => {
     });
 });
 
-expressApp.listen(5050, () => console.log('Example app listening on port 5050!'))
+expressApp.listen(5050, () => console.log('Example app listening on port 5050!'));
