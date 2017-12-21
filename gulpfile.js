@@ -108,7 +108,7 @@ gulp.task('watch', ['clean', 'rollup','sampleRollup'], () => {
 
 gulp.task('test', ['rollup', 'sampleRollup'], () => {
     return gulp.src([
-        './test/functional/**/*.js'
+        './test/**/*.js'
     ], {read: false}).pipe(mocha({reporter: 'list'}));
 
 });
