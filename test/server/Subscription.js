@@ -69,22 +69,19 @@ describe('testing Rest Subscription API', () => {
 
         expect(await service.get('vasja')).to.be.eql({
             status:  'Success',
-            message: 'data loaded',
-            data:    {subscription: 123}
+            message: 'data loaded'
         });
 
         expect(await service.get('petja')).to.be.eql({
             status:  'Error',
-            message: 'Data not exist',
-            data:    undefined
+            message: 'Data not exist'
 
         });
 
 
         expect(await service.get('petja')).to.be.eql({
             status:  'Error',
-            message: 'Data not exist',
-            data:    undefined
+            message: 'Data not exist'
 
         });
 
@@ -97,8 +94,7 @@ describe('testing Rest Subscription API', () => {
 
         expect(await service.get('vasja')).to.be.eql({
             status:  'Error',
-            message: 'Data not exist',
-            data:    undefined
+            message: 'Data not exist'
         });
 
     });
