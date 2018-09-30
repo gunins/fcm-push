@@ -29,7 +29,7 @@
         "chai-http": "^3.0.0",
         "del": "^2.2.2",
         "fetch-mock": "^5.12.2",
-        "gulp": "^3.9.1",
+        "gulp": "4.0.0",
         "gulp-babili": "0.0.2",
         "gulp-bump": "^2.7.0",
         "gulp-clean": "^0.3.2",
@@ -45,7 +45,7 @@
         "rollup-plugin-root-import": "^0.2.2",
         "rollup-stream": "^1.24.1",
         "sinon": "^2.4.1",
-        "vinyl-source-stream": "^1.1.0"
+        "vinyl-source-stream": "2.0.0"
     },
     "dependencies": {
         "body-parser": "^1.18.2",

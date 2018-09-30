@@ -65,11 +65,11 @@ gulp.task('clean', () => {
     ]);
 });
 
-gulp.task('rollup', ['clean'], () => {
+gulp.task('rollup', gulp.series('clean', () => {
     return gulp.src('./src/**/*.js', {read: false})
         .pipe(rollupStream('/src/'))
         .pipe(gulp.dest('./dist'));
-});
+}));
 
 let sampleRollup = (name, file = 'index', format = 'umd') => {
     let roll = rollup({
@@ -92,26 +92,27 @@ let sampleRollup = (name, file = 'index', format = 'umd') => {
         .pipe(gulp.dest(`./examples/${name}/dist`));
 }
 
-let examples = () => {
+let examples = (done) => {
     sampleRollup('service', 'index','cjs');
     sampleRollup('service', 'main','iife');
     sampleRollup('lazy', 'index','cjs');
     sampleRollup('lazy', 'main','iife');
-    sampleRollup('lazy', 'sw','iife');
+    sampleRollup('lazy', 'sw','iife',);
+    done();
 };
-gulp.task('sampleRollup', examples);
+gulp.task('sampleRollup', done=>examples(done));
 
-gulp.task('watch', ['clean', 'rollup','sampleRollup'], () => {
+gulp.task('watch', gulp.series('clean', 'rollup','sampleRollup', () => {
     return watch('./examples/**/src/*.js', {ignoreInitial: true}, examples);
-});
+}));
 
 
-gulp.task('test', ['rollup', 'sampleRollup'], () => {
+gulp.task('test', gulp.series('rollup', 'sampleRollup', () => {
     return gulp.src([
         './test/**/*.js'
     ], {read: false}).pipe(mocha({reporter: 'list'}));
 
-});
+}));
 
 let inc = (importance) => gulp.src(['./package.json', './bower.json'])
 // bump the version number in those files
@@ -125,14 +126,17 @@ let inc = (importance) => gulp.src(['./package.json', './bower.json'])
     .pipe(filter('package.json'))
     // **tag it in the repository**
     .pipe(tag_version());
+gulp.task('bump:patch', () => inc('patch'));
+gulp.task('bump:feature', () => inc('minor'));
+gulp.task('bump:release', () => inc('major'));
 
-gulp.task('pushTags', ['test', 'bump:patch'], (cb) => {
+gulp.task('pushTags', gulp.series('test', 'bump:patch', (cb) => {
     exec('git push --tags', (err, stdout, stderr) => {
         console.log(stdout);
         console.log(stderr);
         cb(err);
     });
-});
+}));
 
 gulp.task('compress', () => gulp.src('examples/**/dist/*.js', {base: "./"})
     .pipe(babili({
@@ -150,17 +154,15 @@ gulp.task('compressRequire', () => gulp.src('./node_modules/requirejs/require.js
     }))
     .pipe(gulp.dest("./target")));
 
-gulp.task('publish', ['pushTags'], (cb) => {
+gulp.task('publish', gulp.series('pushTags', (cb) => {
     exec('npm publish ./', (err, stdout, stderr) => {
         console.log(stdout);
         console.log(stderr);
         cb(err);
     });
-});
+}));
 
-gulp.task('bump:patch', () => inc('patch'));
-gulp.task('bump:feature', () => inc('minor'));
-gulp.task('bump:release', () => inc('major'));
 
-gulp.task('default', ['test']);
+
+gulp.task('default', gulp.series('test'));
 
